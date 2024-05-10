@@ -132,9 +132,6 @@ func (s *writer) Free() {
 	p.Put(s)
 }
 func CamelCase(s string) string {
-	if len(s) <= 1 {
-		return s
-	}
 	for i := 0; i < len(s); i++ {
 		if i > 0 && !unicode.IsUpper(rune(s[i])) {
 			if i == 1 {
@@ -147,9 +144,6 @@ func CamelCase(s string) string {
 	return strings.ToLower(s)
 }
 func PascalCase(s string) string {
-	if len(s) <= 1 {
-		return s
-	}
 	for i := 0; i < len(s); i++ {
 		if i > 0 && unicode.IsLower(rune(s[i])) {
 			if i == 1 {
