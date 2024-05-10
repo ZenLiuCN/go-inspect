@@ -1,4 +1,4 @@
-package go_inspect
+package inspect
 
 import (
 	"bytes"

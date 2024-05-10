@@ -1,1 +1,1 @@
-package go_inspect
+package inspect

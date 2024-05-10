@@ -1,4 +1,4 @@
-package go_inspect
+package inspect
 
 //go:generate stringer -type=Dir
 type Dir int

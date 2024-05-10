@@ -1,4 +1,4 @@
-package go_inspect
+package inspect
 
 type Stack[T comparable] []T
 
