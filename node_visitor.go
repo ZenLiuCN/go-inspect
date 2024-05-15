@@ -1,9 +1,12 @@
 package inspect
 
-import "go/ast"
+import (
+	"github.com/ZenLiuCN/fn"
+	"go/ast"
+)
 
 type (
-	Nodes = Stack[ast.Node]
+	Nodes = fn.Stack[ast.Node]
 
 	NodeDeclVisit[I Inspector, T ast.Node, X any] func(i I, d Dir, name string, o *ast.Object, x T, seen Nodes, cx X) bool
 	NodeVisit[I Inspector, T ast.Node, X any]     func(i I, d Dir, o *ast.Object, x T, seen Nodes, cx X) bool

@@ -36,14 +36,20 @@ type (
 		UnWrite(n int)
 		Format(format string, args ...any) Writer
 		Append(w Writer) Writer
-		Free()
+		Release()
 		NotEmpty() bool
-		LF() Writer
+		LF() Writer    //write line-feed and with Indent if Indent not zero
+		IndLF() Writer //write line-feed and with Indent if Indent not zero
 		Indent(n int) Writer
+		IndInc(n int) Writer
+		IndDec(n int) Writer
+		Indents() int
+		IndentString() string
 		Bytes() []byte
 		fmt.Stringer
 	}
 	writer struct {
+		i    string
 		buf  *bytes.Buffer
 		free bool
 	}
@@ -60,39 +66,78 @@ func (s *writer) NotEmpty() bool {
 }
 func (s *writer) LF() Writer {
 	if s.free {
-		panic("writer freed")
+		panic("writer released")
 	}
 	s.buf.WriteByte('\n')
 	return s
 }
+func (s *writer) IndLF() Writer {
+	if s.free {
+		panic("writer released")
+	}
+	s.buf.WriteByte('\n')
+	s.buf.WriteString(s.i)
+	return s
+}
 func (s *writer) Indent(n int) Writer {
 	if s.free {
-		panic("writer freed")
+		panic("writer released")
 	}
-	for i := 0; i < n; i++ {
-		s.buf.WriteByte('\t')
-	}
+	s.i = strings.Repeat("\t", n)
 	return s
+}
+func (s *writer) IndDec(n int) Writer {
+	if s.free {
+		panic("writer released")
+	}
+	s.i = strings.Repeat("\t", s.Indents()-n)
+	return s
+}
+func (s *writer) IndInc(n int) Writer {
+	if s.free {
+		panic("writer released")
+	}
+	s.i = strings.Repeat("\t", s.Indents()+n)
+	return s
+}
+func (s *writer) Indents() int {
+	if s.free {
+		panic("writer released")
+	}
+	return len(s.i)
+}
+func (s *writer) IndentString() string {
+	if s.free {
+		panic("writer released")
+	}
+	return s.i
 }
 
 func (s *writer) Buffer() *bytes.Buffer {
 	if s.free {
-		panic("writer freed")
+		panic("writer released")
 	}
 	return s.buf
 }
 
 func (s *writer) Format(format string, args ...any) Writer {
 	if s.free {
-		panic("writer freed")
+		panic("writer released")
 	}
 	_, _ = fmt.Fprintf(s.buf, format, args...)
 	return s
 }
 func (s *writer) Reset() {
+	if s.free {
+		panic("writer released")
+	}
+	s.i = ""
 	s.buf.Reset()
 }
 func (s *writer) UnWrite(n int) {
+	if s.free {
+		panic("writer released")
+	}
 	if n > s.buf.Len() {
 		return
 	}
@@ -107,7 +152,7 @@ func (s *writer) UnWrite(n int) {
 
 func (s *writer) Append(w Writer) Writer {
 	if s.free {
-		panic("writer freed")
+		panic("writer released")
 	}
 	_, _ = w.Buffer().WriteTo(s.buf)
 	return s
@@ -126,8 +171,12 @@ func (s *writer) init() *writer {
 	}
 	return s
 }
-func (s *writer) Free() {
+func (s *writer) Release() {
+	if s.free {
+		return
+	}
 	s.free = true
+	s.i = ""
 	s.buf.Reset()
 	p.Put(s)
 }
