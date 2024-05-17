@@ -1,6 +1,7 @@
 package inspect
 
 import (
+	"github.com/ZenLiuCN/fn"
 	"go/ast"
 	"go/types"
 	"golang.org/x/tools/go/packages"
@@ -40,22 +41,22 @@ func TypeObjectVisit[X any](pkg *packages.Package, name string, o types.Object, 
 	switch e := o.(type) {
 	case *types.Const:
 		if s.Visitor.VisitConst(s, ENT, name, e, s.X) {
-			s.visitType(o.Type(), o, &Types{})
+			s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 		}
 		s.Visitor.VisitConst(s, EXT, name, e, s.X)
 	case *types.Func:
 		if s.Visitor.VisitFunc(s, ENT, name, e, s.X) {
-			s.visitType(o.Type(), o, &Types{})
+			s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 		}
 		s.Visitor.VisitFunc(s, EXT, name, e, s.X)
 	case *types.Var:
 		if s.Visitor.VisitVar(s, ENT, name, e, s.X) {
-			s.visitType(o.Type(), o, &Types{})
+			s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 		}
 		s.Visitor.VisitVar(s, EXT, name, e, s.X)
 	case *types.TypeName:
 		if s.Visitor.VisitTypeName(s, ENT, name, e, s.X) {
-			s.visitType(o.Type(), o, &Types{})
+			s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 		}
 		s.Visitor.VisitTypeName(s, EXT, name, e, s.X)
 	default:
@@ -66,7 +67,7 @@ func TypeVisit[X any](pkg *packages.Package, o types.Object, p types.Type, visit
 	v := &TypeInspector[X]{WithUnexported: withUnexported}
 	v.Pkg = pkg
 	v.Visitor = visitor
-	v.visitType(p, o, nil)
+	v.visitType(p, o, &Types{Stack: fn.Stack[types.Type]{}})
 }
 func (s *TypeInspector[X]) initialize(conf *packages.Config) {
 	if s.Visitor == nil {
@@ -171,28 +172,28 @@ func (s *TypeInspector[X]) inspect(p *packages.Package) {
 		case *types.Const:
 			s.OnEnter(KTConst)
 			if s.Visitor.VisitConst(s, ENT, name, e, s.X) {
-				s.visitType(o.Type(), o, &Types{})
+				s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 			}
 			s.Visitor.VisitConst(s, EXT, name, e, s.X)
 			s.OnExit(KTConst)
 		case *types.Func:
 			s.OnEnter(KTFunc)
 			if s.Visitor.VisitFunc(s, ENT, name, e, s.X) {
-				s.visitType(o.Type(), o, &Types{})
+				s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 			}
 			s.Visitor.VisitFunc(s, EXT, name, e, s.X)
 			s.OnExit(KTFunc)
 		case *types.Var:
 			s.OnEnter(KTVar)
 			if s.Visitor.VisitVar(s, ENT, name, e, s.X) {
-				s.visitType(o.Type(), o, &Types{})
+				s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 			}
 			s.Visitor.VisitVar(s, EXT, name, e, s.X)
 			s.OnExit(KTVar)
 		case *types.TypeName:
 			s.OnEnter(KTType)
 			if s.Visitor.VisitTypeName(s, ENT, name, e, s.X) {
-				s.visitType(o.Type(), o, &Types{})
+				s.visitType(o.Type(), o, &Types{Stack: fn.Stack[types.Type]{}})
 			}
 			s.Visitor.VisitTypeName(s, EXT, name, e, s.X)
 			s.OnExit(KTType)
@@ -268,6 +269,7 @@ func (s *TypeInspector[X]) visitNamed(x *types.Named, o types.Object, seen *Type
 	if s.Visitor.VisitTypeNamed(s, ENT, o, x, seen, s.X) {
 		seen.append(x)
 		s.visitType(x.Underlying(), o, seen)
+		s.Visitor.VisitTypeNamed(s, ONC, o, x, seen, s.X)
 		for i1, n1 := 0, x.NumMethods(); i1 < n1; i1++ {
 			m1 := x.Method(i1)
 			if s.isExported(m1.Name()) {

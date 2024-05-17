@@ -4,6 +4,7 @@ package inspect
 type Dir int
 
 const (
+	// ONC access between each children groups:
 	ONC Dir = iota
 	ENT
 	EXT

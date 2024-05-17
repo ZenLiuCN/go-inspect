@@ -10,7 +10,7 @@ type Types struct {
 }
 
 func (t *Types) append(v types.Type) *Types {
-	t.Push(v)
+	t.PushSitu(v)
 	return t
 }
 func (t Types) NthBasic(n int) (v *types.Basic) {
