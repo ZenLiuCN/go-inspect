@@ -3,7 +3,7 @@ module github.com/ZenLiuCN/go-inspect
 go 1.21
 
 require (
-	github.com/ZenLiuCN/fn v0.1.27
+	github.com/ZenLiuCN/fn v0.1.30
 	golang.org/x/tools v0.21.0
 )
 
